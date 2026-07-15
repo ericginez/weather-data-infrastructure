@@ -1,0 +1,100 @@
+version: 2
+
+models:
+  - name: dim_weather_stations
+    description: "Dimension des stations météorologiques harmonisées, utilisée pour décrire les stations issues des différentes sources."
+    columns:
+      - name: station_id
+        description: "Identifiant unique de la station météorologique."
+        tests:
+          - not_null
+          - unique
+
+      - name: station_name
+        description: "Nom lisible de la station météorologique."
+        tests:
+          - not_null
+
+      - name: station_source
+        description: "Source d'origine de la station météorologique."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['infoclimat', 'weatherug']
+
+      - name: station_type
+        description: "Type de station ou catégorie déclarée par la source."
+
+      - name: latitude
+        description: "Latitude géographique de la station."
+
+      - name: longitude
+        description: "Longitude géographique de la station."
+
+      - name: elevation
+        description: "Altitude de la station, en mètres."
+
+      - name: license_unified
+        description: "Information descriptive unifiée provenant de la source, correspondant à la licence ou à une métadonnée équivalente selon le système d'origine."
+
+  - name: fact_weather_observations
+    description: "Table de faits contenant les observations météorologiques harmonisées à la granularité d'une station et d'un instant d'observation."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - station_id
+              - observed_at
+    columns:
+      - name: station_id
+        description: "Identifiant de la station météorologique associée à l'observation."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_weather_stations')
+                field: station_id
+
+      - name: observed_at
+        description: "Date et heure de l'observation météorologique."
+        tests:
+          - not_null
+
+      - name: temperature
+        description: "Température mesurée au moment de l'observation, en degrés Celsius."
+
+      - name: humidity
+        description: "Humidité relative mesurée au moment de l'observation, en pourcentage."
+
+      - name: pressure
+        description: "Pression atmosphérique mesurée au moment de l'observation, en hPa."
+
+      - name: dew_point
+        description: "Point de rosée mesuré au moment de l'observation, en degrés Celsius."
+
+      - name: wind_speed_avg
+        description: "Vitesse moyenne du vent mesurée au moment de l'observation, en km/h."
+
+      - name: wind_direction
+        description: "Direction du vent exprimée en degrés."
+
+      - name: precip_1h
+        description: "Précipitations cumulées sur 1 heure, en mm lorsque disponibles."
+
+      - name: precip_3h
+        description: "Précipitations cumulées sur 3 heures, en mm lorsque disponibles."
+
+      - name: precip_rate
+        description: "Intensité instantanée des précipitations, en mm lorsque disponible."
+
+      - name: precip_accum
+        description: "Cumul de précipitations fourni par la source, en mm lorsque disponible."
+
+      - name: source_system
+        description: "Système source ayant produit l'observation."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['infoclimat', 'weatherug']

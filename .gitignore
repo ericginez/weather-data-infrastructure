@@ -1,0 +1,98 @@
+# ============================================================
+# Système d’exploitation
+# ============================================================
+
+desktop.ini
+Thumbs.db
+.DS_Store
+
+
+# ============================================================
+# Éditeurs
+# ============================================================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+
+# ============================================================
+# Python
+# ============================================================
+
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+.venv/
+venv/
+env/
+
+
+# ============================================================
+# Secrets et accès cloud
+# ============================================================
+
+.env
+.env.*
+!.env.example
+
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Profils dbt susceptibles de contenir des identifiants
+**/profiles.yml
+!**/profiles.example.yml
+
+
+# ============================================================
+# Données météorologiques brutes et intermédiaires
+# ============================================================
+
+projet8_dbt/data/*.xlsx
+projet8_dbt/data/*.xls
+projet8_dbt/data/*.csv
+projet8_dbt/data/*.json
+
+# Les scripts Python du dossier data restent versionnés
+
+
+# ============================================================
+# Artefacts générés par dbt
+# ============================================================
+
+**/target/
+**/dbt_packages/
+**/logs/
+*.log
+
+
+# ============================================================
+# Artefacts Python / dbt temporaires
+# ============================================================
+
+*.tmp
+*.temp
+*.bak
+*.bkp
+*.retry
+
+dbt_packages/
+target/
+logs/
+
+
+# ============================================================
+# Fichiers locaux non destinés au dépôt
+# ============================================================
+
+Amazon Web Services Sign-In.url
+docker/*old*.yml
+docker/*old*.yaml
