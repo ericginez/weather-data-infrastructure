@@ -40,7 +40,9 @@ de produire :
 - une architecture locale reproductible ;
 - une infrastructure cloud permettant l’exécution planifiée des traitements.
 
----
+## Présentation
+
+- [Consulter la présentation de soutenance au format PDF](presentation/projet-08-infrastructure-donnees-meteorologiques.pdf)
 
 ## Objectifs
 
@@ -58,8 +60,6 @@ Le projet permet de :
 - exécuter les transformations dans Docker ;
 - déployer l’image de traitement dans AWS ;
 - planifier l’exécution du pipeline dans le cloud.
-
----
 
 ## Architecture générale
 
@@ -109,8 +109,6 @@ Le projet permet de :
 └──────────────────────────────┘
 ```
 
----
-
 ## Architecture cloud
 
 L’architecture cloud mise en œuvre utilise plusieurs services AWS.
@@ -142,7 +140,9 @@ Les principaux composants sont :
 | Amazon RDS for PostgreSQL | Stockage des données brutes et transformées |
 | Amazon ECR | Stockage de l’image Docker du projet dbt |
 | Amazon ECS | Exécution conteneurisée des transformations dbt |
-| Planification ECS | Déclenchement automatique du traitement |
+| Amazon EventBridge Scheduler | Déclenchement planifié de la tâche ECS |
+| AWS Fargate | Exécution serverless du conteneur dbt |
+| Amazon CloudWatch | Centralisation des journaux et métriques |
 | IAM | Gestion des autorisations entre les services |
 
 Le déploiement AWS a été réalisé dans la région :
@@ -150,8 +150,6 @@ Le déploiement AWS a été réalisé dans la région :
 ```text
 eu-west-3
 ```
-
----
 
 ## Technologies utilisées
 
@@ -173,8 +171,6 @@ eu-west-3
 | Poetry | Gestion des dépendances Python |
 | Git et GitHub | Versionnement et publication |
 
----
-
 ## Arborescence du dépôt
 
 ```text
@@ -185,6 +181,8 @@ eu-west-3
 ├── pyproject.toml
 ├── docker/
 │   └── docker-compose.yml
+├── presentation/
+│   └── projet-08-infrastructure-donnees-meteorologiques.pdf
 └── projet8_dbt/
     ├── Dockerfile
     ├── dbt_project.yml
@@ -222,8 +220,6 @@ eu-west-3
 Les fichiers de données brutes, les profils contenant les identifiants, les
 logs et les artefacts générés par dbt ne sont pas versionnés.
 
----
-
 ## Dépendances Python
 
 Le projet utilise Python 3.12 ou une version ultérieure.
@@ -250,8 +246,6 @@ Vérifier l’environnement :
 poetry run python --version
 poetry run dbt --version
 ```
-
----
 
 ## Sources de données
 
@@ -311,8 +305,6 @@ Les tables d’observations suivent le modèle :
 weatherug_observations_raw_<station>_<date>
 ```
 
----
-
 ## Sources déclarées dans dbt
 
 Le fichier suivant référence les tables brutes :
@@ -338,8 +330,6 @@ La source Infoclimat comprend :
 
 - une table de stations ;
 - une table d’observations.
-
----
 
 ## Architecture dbt
 
@@ -375,8 +365,6 @@ stg_weatherug_stations
 stg_weatherug_observations
 ```
 
----
-
 ### Couche intermediate
 
 Configuration :
@@ -404,8 +392,6 @@ Ils assurent notamment :
 - l’harmonisation des colonnes ;
 - la préparation des modèles analytiques finaux.
 
----
-
 ### Couche marts
 
 Configuration :
@@ -424,8 +410,6 @@ Ils constituent le modèle analytique final :
 dim_weather_stations
 fact_weather_observations
 ```
-
----
 
 ## Modèle dimensionnel
 
@@ -454,8 +438,6 @@ La configuration de staging attend :
 
 - quatre identifiants Infoclimat ;
 - deux identifiants Weather Underground.
-
----
 
 ### Table de faits des observations
 
@@ -486,8 +468,6 @@ Principales colonnes :
 | `precip_rate` | Intensité des précipitations |
 | `precip_accum` | Cumul de précipitations |
 | `source_system` | Source de l’observation |
-
----
 
 ## Tests de qualité dbt
 
@@ -561,8 +541,6 @@ Le test utilisé est :
 dbt_utils.unique_combination_of_columns
 ```
 
----
-
 ## Environnement PostgreSQL local
 
 Le fichier :
@@ -612,8 +590,6 @@ Supprimer également le volume local :
 docker compose -f docker\docker-compose.yml down -v
 ```
 
----
-
 ## Configuration dbt
 
 Le profil dbt doit fournir les paramètres de connexion PostgreSQL.
@@ -646,8 +622,6 @@ profiles.example.yml
 ```
 
 ne contenant aucune donnée sensible.
-
----
 
 ## Exécution locale de dbt
 
@@ -691,8 +665,6 @@ poetry run dbt build `
     --profiles-dir projet8_dbt\docker_dbt
 ```
 
----
-
 ## Documentation dbt
 
 Générer la documentation :
@@ -712,8 +684,6 @@ poetry run dbt docs serve `
 ```
 
 Les artefacts générés dans `target/` ne sont pas versionnés.
-
----
 
 ## Conteneurisation de dbt
 
@@ -741,8 +711,6 @@ Cette image regroupe :
 
 L’image peut ensuite être publiée dans Amazon ECR et exécutée par Amazon ECS.
 
----
-
 ## Déploiement dans AWS
 
 Le déploiement suit les étapes générales suivantes :
@@ -758,8 +726,6 @@ Le déploiement suit les étapes générales suivantes :
 9. création d’une tâche planifiée ;
 10. exécution de dbt dans ECS ;
 11. vérification des tables et des tests dans RDS.
-
----
 
 ## Sécurité
 
@@ -788,8 +754,6 @@ Les secrets de production doivent être gérés avec :
 - AWS Systems Manager Parameter Store ;
 - les rôles IAM.
 
----
-
 ## Résultats
 
 Le projet permet de produire :
@@ -813,7 +777,31 @@ Les données finales sont structurées pour faciliter :
 - le calcul d’indicateurs météorologiques ;
 - l’alimentation d’un outil de reporting.
 
----
+## Livrables
+
+Le projet comprend :
+
+- les scripts Python d’extraction des données Infoclimat ;
+- le script de conversion des fichiers Weather Underground ;
+- un environnement PostgreSQL local défini avec Docker Compose ;
+- un projet dbt structuré en couches `staging`, `intermediate` et `marts` ;
+- quatre modèles de staging ;
+- deux modèles intermédiaires ;
+- une dimension finale des stations météorologiques ;
+- une table de faits des observations météorologiques ;
+- les tests de qualité dbt sur les valeurs nulles, l’unicité, les plages
+  métier et l’intégrité référentielle ;
+- la documentation et le lineage générés par dbt ;
+- un `Dockerfile` permettant de construire l’image du projet dbt ;
+- une image Docker dbt publiée dans Amazon ECR ;
+- une infrastructure d’ingestion Airbyte déployée sur Amazon EC2 ;
+- une base PostgreSQL déployée dans Amazon RDS ;
+- une tâche dbt exécutée avec Amazon ECS et AWS Fargate ;
+- une planification automatique avec Amazon EventBridge Scheduler ;
+- des journaux d’exécution et des métriques centralisés dans Amazon CloudWatch ;
+- une présentation de soutenance au format PDF ;
+- une documentation technique complète dans le README ;
+- un dépôt GitHub public documenté.
 
 ## Limites et évolutions possibles
 
@@ -830,12 +818,10 @@ Le projet pourrait être enrichi avec :
 - un déploiement avec Terraform ;
 - un pipeline CI/CD ;
 - une séparation des environnements de développement et de production ;
-- une centralisation des logs dans CloudWatch ;
+- des alertes CloudWatch en cas d’échec ou de dépassement de seuil ;
 - une politique de rétention des données ;
 - un data catalog ;
 - une couche de visualisation.
-
----
 
 ## Compétences démontrées
 
@@ -856,8 +842,6 @@ Le projet pourrait être enrichi avec :
 - utilisation d’Amazon RDS ;
 - gestion des secrets et des accès cloud ;
 - diagnostic d’une infrastructure locale et cloud.
-
----
 
 ## Auteur
 
